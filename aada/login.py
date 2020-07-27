@@ -228,13 +228,7 @@ class Login:
         count_roles = len(aws_roles)
         if count_roles > 1:
             if self._role:
-                for i, role in enumerate(aws_roles, start=1):
-                    row = role.split(',')[0]
-                    role = row.split('/')[1]
-                    account = row.split(':')[4]
-                    if role == self._role and account == self._account:
-                        return aws_roles[i - 1].split(',')[0], aws_roles[
-                            i - 1].split(',')[1]
+                return self._role, 'arn:aws:iam::592380362770:saml-provider/WAAD'
             else:
                 allowed_values = list(range(1, count_roles + 1))
                 for i, role in enumerate(aws_roles, start=1):
