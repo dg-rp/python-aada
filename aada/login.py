@@ -142,12 +142,7 @@ class Login:
         })
         await page.focus('input[name="loginfmt"]')
         await page.keyboard.type(username)
-        await page.click('input[type=submit]')
-        await page.waitForSelector('input[name="passwd"]:not(.moveOffScreen)', {
-            "visible": True
-        })
-        await page.focus('input[name="passwd"]')
-        await page.keyboard.type(password)
+        await page.authenticate({'username': username, 'password': password});
         await page.click('input[type=submit]')
 
         try:
