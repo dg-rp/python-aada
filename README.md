@@ -11,11 +11,11 @@ Generates STS Tokens based on SAML Assertion from Azure AD (with MFA enabled als
 
 Simply run:
 
-    $ pip install git+https://github.com/piontas/python-aada.git
+    $ pip install git+https://github.com/dgray-realpage/python-aada.git
 
 In order to install with keyring for password management:
 
-    $ pip install "git+https://github.com/piontas/python-aada.git#egg=aada [keyring]"
+    $ pip install "git+https://github.com/dgray-realpage/python-aada.git#egg=aada [keyring]"
 
 # Usage
 
