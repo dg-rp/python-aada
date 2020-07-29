@@ -7,7 +7,10 @@ import json
 import boto3
 import asyncio
 import time
+import pytz
+import requests
 
+from time import sleep
 from datetime import datetime
 from dateutil import tz
 from xml.etree import ElementTree as ET
@@ -21,6 +24,17 @@ from .launcher import launch
 
 if KEYRING:
     import keyring
+
+class color:
+    HEADER = '\033[95m'
+    OKBLUE = '\033[94m'
+    OKGREEN = '\033[92m'
+    WARN = '\033[93m'
+    RED = '\033[91m'
+    END = '\033[0m'
+    BOLD = '\033[1m'
+    AQUA = '\033[96m'
+    UNDERLINE = '\033[4m'
 
 
 class MfaException(Exception):
@@ -145,6 +159,42 @@ class Login:
         await page.authenticate({'username': username, 'password': password});
         await page.click('input[type=submit]')
 
+        # response from myrealpageportal.com as a reference to know if we are on the VPN or not.
+        response = requests.get('http://myrealpageportal.com/')
+
+        if response.headers['Server'] == 'BigIP':
+            print(f'Sending MFA prompt...')
+            try:
+                await page.waitForSelector('input[type="password"]:not(.moveOffScreen)', {
+                    "visible": True
+                })
+                await page.focus('input[type="password"]')
+                await page.keyboard.type(password)
+                await page.click('span[id=submitButton]')
+            except Exception as e:
+                #print(f'could not input/submit password:\n\n Error: {e}')
+                pass
+
+            try:
+                await page.waitForSelector('input[type="submit"]:not(.moveOffScreen)', {
+                    "visible": True
+                })
+                await page.click('input[type="submit"]')
+            except Exception as e:
+                #print(f'Could not submit yes to stay signed in:\n\n Error: {e}')
+                pass
+
+            await page.waitForNavigation({ "waitUntil": "load" })
+            page.on('request', _saml_response)
+            await page.setRequestInterception(True)
+        else:
+            print('VPN connection validated...')
+            # Wait for the page to load and then grab the saml response
+            await page.waitForNavigation({ "waitUntil": "load" })
+            page.on('request', _saml_response)
+            await page.setRequestInterception(True)
+
+
         try:
             if await self._querySelector(page, '.has-error'):
                 raise FormError
@@ -160,7 +210,7 @@ class Login:
                         await page.keyboard.sendCharacter(l)
                     await page.click('input[type=submit]')
                 else:
-                    print('Processing MFA authentication...')
+                    print('Processing SAML response...')
 
             if self._azure_kmsi:
                 await page.waitForSelector(
@@ -168,8 +218,9 @@ class Login:
                 await page.waitForSelector('#idBtn_Back')
                 await page.click('#idBtn_Back')
 
-            page.on('request', _saml_response)
-            await page.setRequestInterception(True)
+            if not self.saml_response:
+                page.on('request', _saml_response)
+                await page.setRequestInterception(True)
 
             wait_time = time.time() + self._MFA_TIMEOUT
             while time.time() < wait_time and not self.saml_response:
@@ -255,8 +306,13 @@ class Login:
         """
         url = self._build_saml_login_url()
         username_input = self._azure_username
+        profile = self._session.profile if self._session.profile else 'default'
+        role_stored_in_config = self._role
         kr_pass = None
-        print('Azure username: {}'.format(self._azure_username))
+        print(f'\n[{color.OKGREEN}Azure AD AWS CLI Authentication{color.END}]')
+        print(f'{color.BOLD}Profile:{color.END} {color.AQUA}{profile}{color.END}')
+        print(f'{color.BOLD}Role:{color.END} {color.AQUA}{role_stored_in_config}{color.END}')
+        print(f'{color.BOLD}Username:{color.END} {color.AQUA}{self._azure_username}{color.END}')
 
         if KEYRING and self._use_keyring:
             try:
@@ -268,28 +324,29 @@ class Login:
         if kr_pass is not None:
             password_input = kr_pass
         else:
-            password_input = getpass.getpass('Azure password: ')
+            password_input = getpass.getpass(f'{color.BOLD}Password:{color.END} ')
+
+        print('-------------------------------------------------------------')
+        print('Logging in...')
 
         asyncio.get_event_loop().run_until_complete(self._render_js_form(
             url, username_input, password_input, self._azure_mfa))
 
         if not self.saml_response:
-            print('Something went wrong!')
+            print('Something went wrong! No roles found!')
             exit(1)
         aws_roles = self._get_aws_roles(self.saml_response)
         role_arn, principal = self._choose_role(self, aws_roles)
 
-        print('Assuming AWS Role: {}'.format(role_arn))
+        print(f'{color.OKGREEN}Assuming role:{color.END} {role_arn}')
         sts_token = self._assume_role(role_arn, principal, self.saml_response)
         credentials = sts_token['Credentials']
         self._save_credentials(credentials, role_arn)
-        profile = self._session.profile if self._session.profile else 'default'
 
-        print('\n-------------------------------------------------------------')
-        print('Your access key pair has been stored in the AWS configuration\n'
-              'file under the {} profile.'.format(profile))
-        print('Credentials expires at {:%Y-%m-%d %H:%M:%S}.'.format(
-            credentials['Expiration'].replace(
-                tzinfo=tz.gettz('UTC')).astimezone(tz.tzlocal())))
+        credential_experation_date = credentials['Expiration'].replace(tzinfo=tz.gettz('UTC')).astimezone(tz.tzlocal())
+        experiation_delta = credentials['Expiration'] - datetime.utcnow().replace(tzinfo=pytz.UTC)
+        time_till_experiation_seconds = experiation_delta.total_seconds()
+        time_till_experiation_hours = int(time_till_experiation_seconds/60/60) + 1
+        print(f'{color.OKGREEN}Expiration:{color.END} {credential_experation_date:%Y-%m-%d %H:%M:%S} ( {time_till_experiation_hours} hours )')
         print('-------------------------------------------------------------\n')
         return 0
