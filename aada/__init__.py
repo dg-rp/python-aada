@@ -8,5 +8,10 @@ else:
     KEYRING = True
 
 LOGIN_URL = 'https://login.microsoftonline.com'
-MFA_WAIT_METHODS = ('PhoneAppNotification', 'TwoWayVoiceMobile')
-MFA_ALLOWED_METHODS = ('PhoneAppOTP', 'OneWaySMS') + MFA_WAIT_METHODS
+
+# OLD METHODS
+# MFA_WAIT_METHODS = ('PhoneAppNotification', 'TwoWayVoiceMobile')
+# MFA_ALLOWED_METHODS = ('PhoneAppOTP', 'OneWaySMS') + MFA_WAIT_METHODS
+
+MFA_WAIT_METHODS = ('PhoneAppNotification')
+MFA_ALLOWED_METHODS = MFA_WAIT_METHODS
