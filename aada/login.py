@@ -338,7 +338,9 @@ class Login:
         aws_roles = self._get_aws_roles(self.saml_response)
         role_arn, principal = self._choose_role(self, aws_roles)
 
-        print(f'{color.OKGREEN}Assuming role:{color.END} {role_arn}')
+        role_name = role_arn.split('/')[-1]
+
+        print(f'{color.OKGREEN}Assuming role:{color.END} {role_name}')
         sts_token = self._assume_role(role_arn, principal, self.saml_response)
         credentials = sts_token['Credentials']
         self._save_credentials(credentials, role_arn)
