@@ -184,9 +184,14 @@ class Login:
                 #print(f'Could not submit yes to stay signed in:\n\n Error: {e}')
                 pass
 
-            await page.waitForNavigation({ "waitUntil": "load" })
-            page.on('request', _saml_response)
-            await page.setRequestInterception(True)
+            print('Waiting for SAML Response...')
+            sleep(5)
+            #await page.waitForNavigation({ "waitUntil": "load" })
+            try:
+                page.on('request', _saml_response)
+                await page.setRequestInterception(True)
+            except Exception as e:
+                print(f'Could not get SAML response:\n\n Error: {e}')
         else:
             print('VPN connection validated...')
             # Wait for the page to load and then grab the saml response
