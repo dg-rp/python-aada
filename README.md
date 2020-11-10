@@ -52,5 +52,5 @@ Run the following commands to install and configure.
 
 Commands
 ```bash
-pip install git+https://github.com/dgray-realpage/python-aada.git -r https://raw.githubusercontent.com/dgray-realpage/python-aada/master/requirements.txt
+pip install git+https://github.com/dg-rp/python-aada.git -r https://raw.githubusercontent.com/dg-rp/python-aada/master/requirements.txt
 ```
