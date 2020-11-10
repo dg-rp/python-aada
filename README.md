@@ -1,6 +1,6 @@
 # Azure AD AWS Cli Authentication
 
-Generates STS Tokens based on SAML Assertion from Azure AD (with MFA enabled also)
+Generates STS Tokens based on SAML Assertion from Azure AD (with MFA enabled also). This fork is modified to work specifically with my own use case.
 
 
 # System Requirements
