@@ -6,3 +6,37 @@ Generates STS Tokens based on SAML Assertion from Azure AD (with MFA enabled als
 # System Requirements
 
 * Python3.7+
+
+# Installing Python3.7 with homebrew
+Run the following commands to check what version of python you're running and install at least python 3.7.
+
+Commands
+$ python --version
+If the above command doesn't return python 3.7, you can run the following, otherwise skip to installing pip.
+
+If you do need to install python 3.7, do so by first installing brew.
+
+Commands
+$ /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/master/install.sh)"
+$ brew install python@3.7
+Then add an alias to your ~/.bash_profile file or the profile file for whatever shell you're using.
+
+Commands
+$ python_path=$(which python3)
+$ echo "alias python='${python_path}'" >> ~/.bash_profile
+$ source ~/.bash_profile
+
+# Installing pip
+Now that you're running at least python 3.7 you can install pip.
+
+Commands
+$ python --version
+Python 3.7.7
+$ curl https://bootstrap.pypa.io/get-pip.py -o get-pip.py
+$ python get-pip.py
+
+# Installing python script
+Run the following commands to install and configure.
+
+Commands
+pip install git+https://github.com/dgray-realpage/python-aada.git -r https://raw.githubusercontent.com/dgray-realpage/python-aada/master/requirements.txt
