@@ -7,6 +7,8 @@ Generates STS Tokens based on SAML Assertion from Azure AD (with MFA enabled als
 
 * Python3.7+
 
+I use this script with python 3.7 installed with homebrew. You might have luck with other methods but this article's scope is limited to 3.7 via homebrew. If you're running Linux on your laptop you'll follow a similar path but you would likely be using yum or apt.
+
 # Installing Python3.7 with homebrew
 Run the following commands to check what version of python you're running and install at least python 3.7.
 
