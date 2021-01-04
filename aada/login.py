@@ -172,7 +172,7 @@ class Login:
                 await page.keyboard.type(password)
                 await page.click('span[id=submitButton]')
             except Exception as e:
-                #print(f'could not input/submit password:\n\n Error: {e}')
+                print(f'could not input/submit password:\n\n Error: {e}')
                 pass
 
             try:
@@ -180,12 +180,13 @@ class Login:
                     "visible": True
                 })
                 await page.click('input[type="submit"]')
+                #print('hit submit on "stay signed in"')
             except Exception as e:
-                #print(f'Could not submit yes to stay signed in:\n\n Error: {e}')
+                print(f'Could not submit yes to stay signed in:\n\n Error: {e}')
                 pass
 
             print('Waiting for SAML Response...')
-            sleep(5)
+            sleep(30)
             #await page.waitForNavigation({ "waitUntil": "load" })
             try:
                 page.on('request', _saml_response)
@@ -196,6 +197,27 @@ class Login:
             print('VPN connection validated...')
             # Wait for the page to load and then grab the saml response
             await page.waitForNavigation({ "waitUntil": "load" })
+            try:
+                await page.waitForSelector('input[type="password"]:not(.moveOffScreen)', {
+                    "visible": True
+                })
+                await page.focus('input[type="password"]')
+                await page.keyboard.type(password)
+                await page.click('span[id=submitButton]')
+            except Exception as e:
+                print(f'could not input/submit password:\n\n Error: {e}')
+                pass
+
+            try:
+                await page.waitForSelector('input[type="submit"]:not(.moveOffScreen)', {
+                    "visible": True
+                })
+                await page.click('input[type="submit"]')
+                #print('hit submit on "stay signed in"')
+            except Exception as e:
+                print(f'Could not submit yes to stay signed in:\n\n Error: {e}')
+                pass
+
             page.on('request', _saml_response)
             await page.setRequestInterception(True)
 
