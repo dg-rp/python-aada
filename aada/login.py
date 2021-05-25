@@ -159,68 +159,36 @@ class Login:
         await page.authenticate({'username': username, 'password': password});
         await page.click('input[type=submit]')
 
-        # response from myrealpageportal.com as a reference to know if we are on the VPN or not.
-        response = requests.get('http://myrealpageportal.com/')
+        # Wait for the page to load and then grab the saml response
+        await page.waitForNavigation({ "waitUntil": "load" })
+        try:
+            await page.waitForSelector('input[type="password"]:not(.moveOffScreen)', {
+                "visible": True
+            })
+            await page.focus('input[type="password"]')
+            await page.keyboard.type(password)
+            await page.click('input[type="submit"]')
+        except Exception as e:
+            print(f'Could not input/submit password:\n\n Error: {e}')
+            pass
 
-        if response.headers['Server'] == 'BigIP':
-            print(f'Sending MFA prompt...')
-            try:
-                await page.waitForSelector('input[type="password"]:not(.moveOffScreen)', {
-                    "visible": True
-                })
-                await page.focus('input[type="password"]')
-                await page.keyboard.type(password)
-                await page.click('input[type="submit"]')
-            except Exception as e:
-                print(f'could not input/submit password:\n\n Error: {e}')
-                pass
+        print('Sending MFA prompt...')
 
-            try:
-                await page.waitForSelector('input[type="submit"]:not(.moveOffScreen)', {
-                    "visible": True
-                })
-                await page.click('input[type="submit"]')
-                print('hit submit on "stay signed in"')
-            except Exception as e:
-                print(f'Could not submit yes to stay signed in:\n\n Error: {e}')
-                pass
+        try:
+            await page.waitForSelector('input[type="submit"]:not(.moveOffScreen)', {
+                "visible": True
+            })
+            await page.click('input[type="submit"]')
+            print('Clicked yes to "stay signed in..."')
+        except Exception as e:
+            print(f'Could not submit yes to stay signed in:\n\n Error: {e}')
+            pass
 
-            try:
-                page.on('request', _saml_response)
-                await page.setRequestInterception(True)
-            except Exception as e:
-                print(f'Could not get SAML response:\n\n Error: {e}')
-
-        else:
-            print('VPN connection validated...')
-            # Wait for the page to load and then grab the saml response
-            await page.waitForNavigation({ "waitUntil": "load" })
-            try:
-                await page.waitForSelector('input[type="password"]:not(.moveOffScreen)', {
-                    "visible": True
-                })
-                await page.focus('input[type="password"]')
-                await page.keyboard.type(password)
-                await page.click('input[type="submit"]')
-            except Exception as e:
-                print(f'could not input/submit password:\n\n Error: {e}')
-                pass
-
-            try:
-                await page.waitForSelector('input[type="submit"]:not(.moveOffScreen)', {
-                    "visible": True
-                })
-                await page.click('input[type="submit"]')
-                #print('hit submit on "stay signed in"')
-            except Exception as e:
-                print(f'Could not submit yes to stay signed in:\n\n Error: {e}')
-                pass
-
-            try:
-                page.on('request', _saml_response)
-                await page.setRequestInterception(True)
-            except Exception as e:
-                print(f'Could not get SAML response:\n\n Error: {e}')
+        try:
+            page.on('request', _saml_response)
+            await page.setRequestInterception(True)
+        except Exception as e:
+            print(f'Could not get SAML response:\n\n Error: {e}')
 
 
         try:
@@ -337,6 +305,15 @@ class Login:
         profile = self._session.profile if self._session.profile else 'default'
         role_stored_in_config = self._role
         kr_pass = None
+
+        # response from myrealpageportal.com as a reference to know if we are on the VPN or not.
+        response = requests.get('http://myrealpageportal.com/')
+        if response.headers['Server'] == 'BigIP':
+            print('You are not logged into the BigIP VPN. Exiting...')
+            exit(1)
+        else:
+            print('VPN connection validated...')
+
         print(f'\n[{color.OKGREEN}Azure AD AWS CLI Authentication{color.END}]')
         print(f'{color.BOLD}Profile:{color.END} {color.AQUA}{profile}{color.END}')
         print(f'{color.BOLD}Role:{color.END} {color.AQUA}{role_stored_in_config}{color.END}')
@@ -344,7 +321,7 @@ class Login:
 
         if KEYRING and self._use_keyring:
             try:
-                print('Getting password from keyring')
+                #print('Getting password from keyring')
                 kr_pass = keyring.get_password('aada', self._azure_username)
             except Exception as e:
                 print('Failed getting password from Keyring {}'.format(e))
