@@ -170,7 +170,7 @@ class Login:
                 })
                 await page.focus('input[type="password"]')
                 await page.keyboard.type(password)
-                await page.click('span[id=submitButton]')
+                await page.click('input[type="submit"]')
             except Exception as e:
                 print(f'could not input/submit password:\n\n Error: {e}')
                 pass
@@ -180,19 +180,17 @@ class Login:
                     "visible": True
                 })
                 await page.click('input[type="submit"]')
-                #print('hit submit on "stay signed in"')
+                print('hit submit on "stay signed in"')
             except Exception as e:
                 print(f'Could not submit yes to stay signed in:\n\n Error: {e}')
                 pass
 
-            print('Waiting for SAML Response...')
-            sleep(30)
-            #await page.waitForNavigation({ "waitUntil": "load" })
             try:
                 page.on('request', _saml_response)
                 await page.setRequestInterception(True)
             except Exception as e:
                 print(f'Could not get SAML response:\n\n Error: {e}')
+
         else:
             print('VPN connection validated...')
             # Wait for the page to load and then grab the saml response
@@ -203,7 +201,7 @@ class Login:
                 })
                 await page.focus('input[type="password"]')
                 await page.keyboard.type(password)
-                await page.click('span[id=submitButton]')
+                await page.click('input[type="submit"]')
             except Exception as e:
                 print(f'could not input/submit password:\n\n Error: {e}')
                 pass
@@ -218,8 +216,11 @@ class Login:
                 print(f'Could not submit yes to stay signed in:\n\n Error: {e}')
                 pass
 
-            page.on('request', _saml_response)
-            await page.setRequestInterception(True)
+            try:
+                page.on('request', _saml_response)
+                await page.setRequestInterception(True)
+            except Exception as e:
+                print(f'Could not get SAML response:\n\n Error: {e}')
 
 
         try:
