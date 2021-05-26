@@ -174,16 +174,40 @@ class Login:
 
         print('Sending MFA prompt...')
 
+        # Sign in another way
+        try:
+            await page.waitForSelector('a[id="signInAnotherWay"]:not(.moveOffScreen)', {
+                "visible": True
+            })
+            await page.click('a[id="signInAnotherWay"]')
+            print('Clicked sign in another way...')
+        except Exception as e:
+            print(f'Could not click sign in another way:\n\n Error: {e}')
+            pass
+
+        # Phone app approval
+        try:
+            await page.waitForSelector('div[data-value="PhoneAppNotification"]:not(.moveOffScreen)', {
+                "visible": True
+            })
+            await page.click('div[data-value="PhoneAppNotification"]')
+            print('Clicked PhoneAppNotification...')
+        except Exception as e:
+            print(f'Could not click PhoneAppNotification:\n\n Error: {e}')
+            pass
+
+        # Stay signed in
         try:
             await page.waitForSelector('input[type="submit"]:not(.moveOffScreen)', {
                 "visible": True
             })
             await page.click('input[type="submit"]')
-            print('Clicked yes to "stay signed in..."')
+            print('Clicked yes to "stay signed in"...')
         except Exception as e:
             print(f'Could not submit yes to stay signed in:\n\n Error: {e}')
             pass
 
+        # Get SAML response
         try:
             page.on('request', _saml_response)
             await page.setRequestInterception(True)
