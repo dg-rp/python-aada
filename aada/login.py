@@ -172,8 +172,6 @@ class Login:
             print(f'Could not input/submit password:\n\n Error: {e}')
             pass
 
-        print('Sending MFA prompt...')
-
         # Sign in another way
         try:
             await page.waitForSelector('a[id="signInAnotherWay"]:not(.moveOffScreen)', {
