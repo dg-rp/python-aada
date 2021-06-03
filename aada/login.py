@@ -331,10 +331,10 @@ class Login:
         # response from myrealpageportal.com as a reference to know if we are on the VPN or not.
         response = requests.get('http://myrealpageportal.com/')
         if response.headers['Server'] == 'BigIP':
-            print('You are not logged into the BigIP VPN. Exiting...')
+            print('You are not connected the RealPage network. You might need to connect to the BigIP VPN. Exiting...')
             exit(1)
         else:
-            print('VPN connection validated...')
+            print('RealPage network detected...')
 
         print(f'\n[{color.OKGREEN}Azure AD AWS CLI Authentication{color.END}]')
         print(f'{color.BOLD}Profile:{color.END} {color.AQUA}{profile}{color.END}')
